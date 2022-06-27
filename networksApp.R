@@ -1,5 +1,6 @@
 library(shiny)
 library(DT)
+library(shinydashboard)
 
 ## module UI
 module_ui  <- function(id){
