@@ -1,3 +1,5 @@
+
+
 library(shiny)
 library(DT)
 library(shinydashboard)
@@ -32,11 +34,11 @@ module_ui  <- function(id){
       
       tagList(
         DT::dataTableOutput(outputId = ns("dt1"))
-      
-    )      
-  )
-  
-
+        
+      )      
+    )
+    
+    
   )
 }
 
@@ -62,6 +64,7 @@ module_server <- function(input, output, session ){
                           'checkboxes',
                           label = NULL,
                           ns = ns,
+                          width = 1,
       ),
       Network = c('<img src="https://cytoscape.org/cytoscape-tutorials/presentations/modules/network-visualization/data-mapping-6.png" height="150"></img>','<img src="https://cytoscape.org/cytoscape-tutorials/protocols/rna-seq-data-analysis/string-up-viz.png" height="150"></img>' ), 
       Description = c('Here is a very beautiful network', 'Another network'),
