@@ -101,9 +101,9 @@ module_server <- function(input, output, session ){
   })
 }
 
-ui <- fluidPage(
+ui <- 
   module_ui(id = "test_dt_inside_module")
-)
+
 
 server <- function(input, output, session) {
   callModule(module = module_server , id = "test_dt_inside_module")
