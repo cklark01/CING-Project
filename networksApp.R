@@ -9,25 +9,31 @@ module_ui  <- function(id){
   ns <- NS(id)
   dashboardPage(
     #these are random things i found and added maybe we can customize them later
-    dashboardHeader(title = 'Network Library', 
-                    
-                    dropdownMenu(
-                      type = 'messages', 
-                      messageItem(from = 'Mike', message = 'This is a sample message')
-                    ), #static example
-                    dropdownMenuOutput('messageMenu'), #dynamic example
-                    dropdownMenu(
-                      type = 'notifications', 
-                      notificationItem(text = 'This is a test notification')
-                    ),
-                    dropdownMenu(
-                      type = 'tasks', 
-                      taskItem(text='This is a test task', value = 50)
-                    )), 
+    dashboardHeader(
+      title = 'NetHub'),
     dashboardSidebar(
       sidebarMenu(
-        menuItem(text='Networks', tabName = 'networks',{menuItem(text='View', tabName = 'viewer')}, {menuItem(text='Analyze', tabName = 'analyzer')}), 
-        menuItem(text='')
+        sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
+                          label = "Search..."),
+        menuItem(text='Views',icon = icon("hive"), tabName = 'views',
+                 {menuItem(text='Views in Uniprot', tabName = 'viewerU')},
+                 {menuItem(text='Views in String', tabName = 'viewerS')},
+                 {menuItem(text='Views in DisGNet', tabName = 'viewerD')}), 
+        menuItem(text='Browse',icon = icon("filter"), tabName = 'analyze',
+                 {menuItem(text='Proteins', tabName = 'viewerS')},
+                 {menuItem(text='Sequence', tabName = 'viewerS')},
+                 {menuItem(text='Genes', tabName = 'viewerD')}),
+        menuItem("Diseases", icon = icon("disease"), tabName = "dis",
+                 {menuItem(text='Cancer', tabName = 'can')},
+                 {menuItem(text='Cancer', tabName = 'can')},
+                 {menuItem(text='Cancer', tabName = 'can')}),
+        sliderInput("obs", "Number of Nodes:",
+                   min = 0, max = 1000, value = 500
+        ),
+        sliderInput("obs", "Number of Edges:",
+                   min = 0, max = 1000, value = 500
+        )
+        
       )
     ),
     dashboardBody(
@@ -46,8 +52,8 @@ module_ui  <- function(id){
 module_server <- function(input, output, session ){
   ns = session$ns
   
-  myValue <- reactiveValues(check = '')
   
+  #Function to show inputs in table
   shinyInput <- function(FUN, len, id, ns, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
@@ -56,7 +62,7 @@ module_server <- function(input, output, session ){
     inputs
   }
   
-  
+  #Table Dynamic creation
   datatable_function <- reactive({
     tibble::tibble(
       Select = shinyInput(checkboxInput,
@@ -77,9 +83,8 @@ module_server <- function(input, output, session ){
       
       
     )})
-  
+  #Download Handler for all the download buttons
   lapply(1:2 , function(i){
-    
     output[[paste0("buttons",i)]] <-
       downloadHandler(
         filename = "edgeList.txt",
@@ -88,11 +93,7 @@ module_server <- function(input, output, session ){
         }
       )
   })
-  
-  observeEvent(input$select_button, {
-    print(input$select_button)
-  })
-  
+
   
   output$dt1 <- DT::renderDataTable({
     datatable(datatable_function(), escape = FALSE, 
