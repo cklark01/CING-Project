@@ -20,7 +20,7 @@ networks <- c(
 
 
 #----------------------------------------------------------------------------------------------------
-graph.json.filename <- "stringinteractions.cyjs"
+graph.json.filename <- "NetworkFiles/stringinteractions.cyjs"
 style.json.filename <- "NetworkFiles/smallDemoStyle.json"
 #----------------------------------------------------------------------------------------------------
 
