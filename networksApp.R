@@ -148,8 +148,8 @@ server <- function(input,output, session) {
                                                  "table.on('dblclick', 'td',", 
                                                  "  function() {",
                                                  "    var row = table.cell(this).index().row;",
-                                                
-                                                 "    Shiny.setInputValue('dt_dblclick', {dt_row: row});",
+                                          
+                                                 "    Shiny.setInputValue('dt_dblclick',  {row});",
                                                  "  }",
                                                  ");"
                                                )
@@ -163,22 +163,22 @@ server <- function(input,output, session) {
   
     observeEvent(input$dt_dblclick, {
 
-    if (input$dt_dblclick[1] == 0) {
-    print(input$dt_dblclick)
+
+    print(input$dt_dblclick$row)
 
     updateTabsetPanel(session, "tabs",
                       selected = 'View')
 
 
     output$cyjShiny <- renderCyjShiny({
-    graphAsJSON <- readAndStandardizeJSONNetworkFile(readLines(data_one$NetworkCyto[1]))
+    graphAsJSON <- readAndStandardizeJSONNetworkFile(readLines(data_one$NetworkCyto[input$dt_dblclick$row + 1]))
     cyjShiny(graph=graphAsJSON, layoutName="preset", styleFile= style.json.filename ) })
 
 
-    }})
+
+      })
 
   
- 
     
   
 }
