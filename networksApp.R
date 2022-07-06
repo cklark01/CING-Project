@@ -136,7 +136,6 @@ server <- function(input,output, session) {
                                                  list(
                                                    preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
                                                    drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
-                                                   dom = "t",
                                                    ordering = FALSE,
                                                    paging = FALSE,
                                                    autoWidth = FALSE,
