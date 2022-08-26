@@ -1,25 +1,24 @@
 library(shiny)
 library(DT)
-#library(cyjShiny)
-library(htmlwidgets)
-#library(graph)
-library(jsonlite)
-library(later)
+library(cyjShiny)
+
+
+
 library(shinydashboard)
-library(readr)
-library(xml2)
+
+
 library(tidyverse)
-library(reactlog)
+
 
 library(igraph)
 
-library(networkD3)
-library(stringr)
-library(odbc)
+
 library(RMySQL)
+library(excelR)
+library(data.table)
 
 
-shiny.reactlog = TRUE
+
 
 mysqlconnection = dbConnect(
   RMySQL::MySQL(),
@@ -30,138 +29,172 @@ mysqlconnection = dbConnect(
   password = 'Password123'
 )
 
-result = dbSendQuery(mysqlconnection, "select * from book2")
+result = dbSendQuery(mysqlconnection, "select * from book3")
 data_one = fetch(result)
 dbDisconnect(mysqlconnection)
 
 
-#MyGraph <- sif2igraph(Path = "/Users/constantinosclark/Desktop/CING/CING-Project/NetworkFiles/network1.sif", directed=TRUE)
-#data_one <- read_csv('/Users/constantinosclark/Desktop/CING/CING-Project/NetworkFiles/data.csv')
-
-
-
-
-#xml_address = "/Users/constantinosclark/Desktop/CING/CING-Project/network_description_example.xml"
-#networkDescription = as_list(read_xml(xml_address))
-
-
-
 ui <-
-  
-  dashboardPage(
-    dashboardHeader(title = 'NetHub'),
-    dashboardSidebar(
-      sidebarMenu(
-        selectInput(
-          "databaseSelector",
-          label = "Database: ",
-          unique(data_one$DatabaseName),
-          selected = NULL,
-          multiple = T
-        ),
-        selectInput(
-          "diseaseSelector",
-          label = "Disease: ",
-          unique(data_one$Disease),
-          selected = NULL,
-          multiple = T
-        ),
-        selectInput(
-          "typeSelector",
-          label = "Type: ",
-          unique(data_one$Type),
-          selected = NULL,
-          multiple = T
-        ),
-        sliderInput(
-          "obs",
-          "Number of Nodes:",
-          min = 0,
-          max = 1000,
-          value = 500
-        ),
-        sliderInput(
-          "obs",
-          "Number of Edges:",
-          min = 0,
-          max = 1000,
-          value = 500
-        )
-        
-      )
+  fluidPage(
+    tags$head(tags$style(
+      HTML("input[type='search']:disabled {visibility:hidden}
+           ")
+    )),
+    
+    tags$head(
+      tags$style(HTML("
+      
+      .pre  {
+      background-color: #e8e8e8;
+      border: none;
+      } 
+      .myclass pre {
+        display: flex;
+        color: black;
+        background-color: #e8e8e8;
+        font-weight: bolder;
+        border: none;
+
+      }
+      .text pre  {
+      background-color: white;
+      margin: auto;
+      border: none;
+      padding: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      } 
+      .text h2  {
+      text-align: center;
+      border: none;
+      font-family: Arial, Helvetica, sans-serif;
+      } 
+     
+      "))
     ),
     
-    
-    dashboardBody(tabsetPanel(
-      id = 'tabs',
-      tabPanel("Table",  DT::dataTableOutput(outputId = ("dt1"))),
-      tabPanel(
-        "View",
-        box(
-          style = "margin-bottom:-15px;",
-          width = "100px",
-          title = "Network Visualization",
-          #cyjShinyOutput('cyjShiny'),
-          forceNetworkOutput("force")
-        ),
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+    ),
+    dashboardPage(
+      dashboardHeader(title = 'NetHub'),
+      dashboardSidebar(collapsed = TRUE),
+      
+      
+      dashboardBody(
         
-        box(
-          title = "Network Info",
-          width = "100px",
-          status = "warning",
-          DT::dataTableOutput(outputId = ("dt2")),
-          br(),
-          "Node/Edge Description: ",
-          br(),
-          verbatimTextOutput("text22"),
-          solidHeader = TRUE
+        tabsetPanel(
+        id = 'tabs',
+        tabPanel(
+          "Home",
+          fluidRow(
+            tags$img(
+              src = "Head and Neck gene_drugs.jpg",
+              height="100%", width="100%"
+            )
+          ),
+          div(class = "text",
+          fluidRow(
+                h2("Total Networks Statistics"),
+                infoBox(
+                width = "90%",
+               
+                verbatimTextOutput("text41" ))
+                 )),
+          div(class = "myclass",
+          fluidRow(
+            box(
+              title = "Our Vision",
+              status = "info",
+              
+              "Scientific progress depends on standard graph datasets for which claims, hypotheses, and algorithms can be compared and evaluated. Despite the importance of having standard network datasets, it is often impossible to find the original data used in published experiments, and at best it is difficult and time consuming. This site is an effort to improve and facilitate the scientific study of networks by making it easier for researchers to download, analyze, and investigate a large collection of network data. Our goal is to make these scientific graph datasets widely available to everyone while also providing a first attempt at interactive analytics on the web. "
+            ),
+              box(
+                title = "About",
+                status = "info",
+              tags$img(
+                src = "gen.png",
+                style = "postion: flex-end",
+                height="50%", width="50%"
+              )
+              ),
+           
+          )
+          )
+          ),
           
-        ),
-        box(
-          title = "Netowork Details",
-          width = "50px",
-          "Dataset: ",
-          br(),
-          verbatimTextOutput("text1"),
+        tabPanel(
+          "Networks Table", 
+          DT::dataTableOutput(outputId = ("dt1"))
+                 ),
+        tabPanel(
+          "Visualization",
+          box(
+            style = "margin-bottom:-15px;",
+            width = "1000px",
+            status = "info",
+            title = "Network Visualization",
+            cyjShinyOutput('cyjShiny'),
+            
+            
+          ),
           
-          "Edge Formation Method: ",
-          br(),
-          verbatimTextOutput("text12"),
+          box(
+            title = "Network Info",
+            width = "100px",
+            status = "warning",
+            DT::dataTableOutput(outputId = ("dt2")),
+            br(),
+            "Node/Edge Description: ",
+            br(),
+            verbatimTextOutput("text22"),
+            solidHeader = TRUE
+            
+          ),
+          box(
+            title = "Netowork Details",
+            width = "50px",
+            "Dataset: ",
+            br(),
+            verbatimTextOutput("text1"),
+            
+            "Edge Formation Method: ",
+            br(),
+            verbatimTextOutput("text12"),
+            
+            "Visualization: ",
+            br(),
+            verbatimTextOutput("text13"),
+            
+            uiOutput("myList"),
+            status = "primary",
+            solidHeader = TRUE,
+            collapsible = FALSE,
+            collapsed = FALSE
+            
+            
+          ),
           
-          "Visualization: ",
-          br(),
-          verbatimTextOutput("text13"),
           
-          uiOutput("myList"),
-          status = "primary",
-          solidHeader = TRUE,
-          collapsible = FALSE,
-          collapsed = FALSE
+          box(
+            "Network Data Statistics",
+            value = NULL,
+            subtitle = NULL,
+            icon = shiny::icon("chart-column"),
+            color = "aqua",
+            width = 14,
+            href = NULL,
+            fill = FALSE,
+            verbatimTextOutput("text33"),
+            plotOutput("graphDeg"),
+            plotOutput("graphCent")
+            
+          )
           
-          
-        ),
-        
-        
-        box(
-          "Network Data Statistics",
-          value = NULL,
-          subtitle = NULL,
-          icon = shiny::icon("chart-column"),
-          color = "aqua",
-          width = 14,
-          href = NULL,
-          fill = FALSE,
-          verbatimTextOutput("text33"),
-          plotOutput("graphDeg"),
-          plotOutput("graphCent")
           
         )
-        
-        
-      )
-    ))
+      ))
+    )
   )
-
 
 
 
@@ -179,30 +212,12 @@ server <- function(input, output, session) {
     inputs
   }
   
-  entrys <- reactive({
-    dat <- data_one
-    
-    if (!is.null(input$diseaseSelector)) {
-      dat <- dat %>% filter(Disease %in% input$diseaseSelector)
-    }
-    if (!is.null(input$databaseSelector)) {
-      dat <- dat %>% filter(DatabaseName %in% input$databaseSelector)
-    }
-    if (!is.null(input$typeSelector)) {
-      dat <- dat %>% filter(Type %in% input$typeSelector)
-    }
-    dat <- dat %>% select(-Disease)
-
-    return(dat)
-    
-  })
   
-  # my_range <- 1: nrow(entrys())
+  
   downloadLoop <- reactive({
-    # print(nrow(entrys()))
-    for (i in  1:nrow(entrys())) {
-      lapply(1:nrow(entrys()), function(i) {
-        edgefile <- read_csv(entrys()$DownloadFile[i])
+    for (i in  1:nrow(data_one)) {
+      lapply(1:nrow(data_one), function(i) {
+        edgefile <- data_one$DownloadFile[i]
         output[[paste0("button_", i)]] <-
           downloadHandler(
             filename = "edgeList.txt",
@@ -259,42 +274,68 @@ server <- function(input, output, session) {
     )
   })
   
-  output$text33 <- renderText({
-    
+  
+  output$text41 <- renderText({
     HTML(
-    " Max Degree:", paste(unlist(max(degree(MyGraph)))),"\n",
-    "Min Degree:", paste(unlist(min(degree(MyGraph)))),"\n",
-    "Max K-Core",  paste(unlist(max(coreness(MyGraph)))),"\n"
+    
+      " Total Networks:",
+      paste(nrow(data_one)),
+      "\n",
+      "Average Nodes:",
+      paste(round(mean(data_one$Nodes),0)),
+      "\n",
+      "Average Edges:",
+      paste(round(mean(data_one$Edges),0)),
     )
   })
   
-  output$graphDeg <- renderPlot(
-    plot(ecdf(degree_distribution(MyGraph)))
-  )
-  output$graphCent <- renderPlot(
-    plot(ecdf(degree_distribution(MyGraph)))
-  )
-
+  output$text33 <- renderText({
+    MyGraph <-
+      read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")
+    HTML(
+      " Max Degree:",
+      paste(unlist(max(
+        degree(MyGraph)
+      ))),
+      "\n",
+      "Min Degree:",
+      paste(unlist(min(
+        degree(MyGraph)
+      ))),
+      "\n",
+      "Max K-Core",
+      paste(unlist(max(
+        coreness(MyGraph)
+      ))),
+      "\n"
+    )
+  })
+  
+  output$graphDeg <- renderPlot(plot(ecdf(degree_distribution(
+    read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")
+  ))))
+  output$graphCent <- renderPlot(plot(ecdf(degree_distribution(
+    read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")
+  ))))
+  
   
   
   
   datatable_function <- reactive({
     data.frame(
-      Select = shinyInput(
-        checkboxInput,
-        nrow(entrys()),
-        'checkboxes',
-        label = NULL,
-        ns = ns,
-        width = 1,
+      Network = paste0(
+        "<img src=\"",
+        data_one$Image,
+        "\" height=\"150\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"",
+        "\"></img>"
       ),
-      Network = entrys()$Network ,
-      Description =  entrys()$Description,
-      # "No. of Nodes" = (data_one$Nodes),
-      # "No. of Edges" = (data_one$Edges),
+      Disease = data_one$Disease,
+      Nodes = data_one$Nodes,
+      Edges = data_one$Edges,
+      Database = data_one$DatabaseName,
       Download = shinyInput(
         downloadButton,
-        nrow(entrys()),
+        nrow(data_one),
         'button_',
         ns = ns,
         label = "Download",
@@ -307,13 +348,37 @@ server <- function(input, output, session) {
     )
   })
   
-  datatable_function2 <- reactive({
+  datatable_function3 <- reactive({
     data.frame(
-      Description = (data_one$Description[input$dt_dblclick$row + 1]),
-      "No. of Nodes" = (data_one$Nodes[input$dt_dblclick$row + 1]),
-      "No. of Edges" = (data_one$Edges[input$dt_dblclick$row + 1])
+      
+      "Total Netwroks" = nrow(data_one),
+
+      "Average Nodes" =(round(mean(data_one$Nodes),0)),
+     
+      "Average Edges" =(round(mean(data_one$Edges),0))
+      
+      
     )
   })
+  
+  output$v1 <- renderExcel({
+    excelTable(datatable_function3())
+  })
+  
+  datatable_function2 <- reactive({
+    data.frame(
+      Description = (data_one$networkDescription[input$dt_dblclick$row + 1]),
+      "Number of Nodes" = (data_one$Nodes[input$dt_dblclick$row + 1]),
+      "No. of Edges" = (data_one$Edges[input$dt_dblclick$row + 1]),
+      "Node Legend Size" = (data_one$nodeLegendSize[input$dt_dblclick$row + 1]),
+      "Node Legend Colour" = (data_one$nodeLegendColour[input$dt_dblclick$row + 1]),
+      "Edge Legend Thickness" = (data_one$edgeLegendThickness[input$dt_dblclick$row + 1]),
+      "Notes/Remarks" = (data_one$notes[input$dt_dblclick$row + 1])
+    )
+      
+    })
+    
+ 
   
   
   
@@ -326,48 +391,43 @@ server <- function(input, output, session) {
       selection = "single",
       options = (
         list(
-          preDrawCallback = JS(
-            'function() { Shiny.unbindAll(this.api().table().node()); }'
-          ),
-          drawCallback = JS(
-            'function() { Shiny.bindAll(this.api().table().node()); } '
-          ),
           dom = "t",
           ordering = FALSE,
           paging = FALSE,
           autoWidth = TRUE,
           scrollCollapse = FALSE
         )
-      ),
+      )
     )
   })
   
-  
+
   
   output$dt1 <- DT::renderDataTable({
+   
     datatable(
       datatable_function(),
       escape = FALSE,
       rownames = FALSE,
       selection = "single",
+      
+      style = "default",
       options = (
         list(
-          preDrawCallback = JS(
-            'function() { Shiny.unbindAll(this.api().table().node()); }'
-          ),
-          drawCallback = JS(
-            'function() { Shiny.bindAll(this.api().table().node()); } '
-          ),
+          
+          columnDefs = list(list(targets = c(0,5), searchable = FALSE)),
+       
           ordering = FALSE,
-          paging = FALSE,
-          autoWidth = FALSE,
+          autoWidth = TRUE,
           scrollY = "100vh",
-          scrollCollapse = FALSE
+          scrollCollapse = FALSE,
+          pageLength = 10,
+          lengthMenu = FALSE,
+          lengthChange = FALSE
         )
       ),
-      filter = list(
-        position = 'top', clear = FALSE
-      ),
+    
+      filter = list(position = 'top', clear = FALSE),
       callback = htmlwidgets::JS(
         "table.on('dblclick', 'td',",
         "  function() {",
@@ -387,49 +447,28 @@ server <- function(input, output, session) {
   
   observeEvent(input$dt_dblclick, {
     updateTabsetPanel(session, "tabs",
-                      selected = 'View')
-
-    #output$cyjShiny <- renderCyjShiny({
-    # graphAsJSON <- readAndStandardizeJSONNetworkFile(readLines(data_one$NetworkCyto[input$dt_dblclick$row + 1]))
-    # cyjShiny(graph=graphAsJSON, layoutName="preset", styleFile= data_one$NetworkStyle[input$dt_dblclick$row + 1] ) })
-   
+                      selected = 'Visualization')
     
-     MyGraph <-read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")
-     wc <- cluster_walktrap(MyGraph)
-     members <- membership(wc)
-     gr <- igraph_to_networkD3(MyGraph, group = members)
-     edgeList <- as_edgelist(MyGraph, names = TRUE)
-     #F2 <- colorRampPalette(c("#FFFF00", "#FF0000"), bias = nrow(gr$links), space = "rgb", interpolate = "linear")
-     output$force <- renderForceNetwork({
-       forceNetwork(Links = gr$links, # data frame that contains info about edges
-                    Nodes = gr$nodes, # data frame that contains info about nodes
-                    Source = "source", # ID of source node 
-                    Target = "target", # ID of target node
-                    #Value = "Weight", # value from the edge list (data frame) that will be used to value/weight relationship amongst nodes
-                    NodeID = "name", # value from the node list (data frame) that contains node description we want to use (e.g., node name)
-                    #Nodesize = "nodeBetweenness",  # value from the node list (data frame) that contains value we want to use for a node size
-                    Group = "group",  # value from the node list (data frame) that contains value we want to use for node color
-                    height = 500, # Size of the plot (vertical)
-                    width = 1000,  # Size of the plot (horizontal)
-                    fontSize = 20, # Font size
-                    #linkDistance = networkD3::JS("function(d) { return 10*d.value; }"), # Function to determine distance between any two nodes, uses variables already defined in forceNetwork function (not variables from a data frame)
-                    #linkWidth = networkD3::JS("function(d) { return d.value/5; }"),# Function to determine link/edge thickness, uses variables already defined in forceNetwork function (not variables from a data frame)
-                    opacity = 0.85, # opacity
-                    zoom = TRUE, # ability to zoom when click on the node
-                    opacityNoHover = 0.1 # opacity of labels when static
-                    #linkColour = F2 # edge colors
-       )
-     
-    
+    if (data_one$NetworkStyle[input$dt_dblclick$row + 1] != '') {
+      style <- data_one$NetworkStyle[input$dt_dblclick$row + 1]
+    }
+    else {
+      style <-  "/Users/constantinosclark/Downloads/defaultStyles.json"
+    }
+    output$cyjShiny <- renderCyjShiny({
+      graphAsJSON <-
+        readAndStandardizeJSONNetworkFile(readLines(data_one$NetworkCyto[input$dt_dblclick$row + 1]))
+      cyjShiny(graph = graphAsJSON,
+               layoutName = "cola",
+               styleFile = style)
     })
-     
+    
+    
   })
   
   
-  
-  
-  
 }
+
 
 
 
