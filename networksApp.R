@@ -1,37 +1,29 @@
 library(shiny)
 library(DT)
 library(cyjShiny)
-
-
-
 library(shinydashboard)
-
-
 library(tidyverse)
-
-
 library(igraph)
-
-
 library(RMySQL)
-library(excelR)
 library(data.table)
 
 
 
 
-mysqlconnection = dbConnect(
-  RMySQL::MySQL(),
-  dbname = 'networkApp',
-  host = 'localhost',
-  port = 3306,
-  user = 'root',
-  password = 'Password123'
-)
+#mysqlconnection = dbConnect(
+#  RMySQL::MySQL(),
+#  dbname = 'networkApp',
+#  host = 'localhost',
+#  port = 3306,
+#  user = 'root',
+#  password = 'Password123'
+#)
 
-result = dbSendQuery(mysqlconnection, "select * from book3")
-data_one = fetch(result)
-dbDisconnect(mysqlconnection)
+#result = dbSendQuery(mysqlconnection, "select * from dataFinal1")
+#data_one = fetch(result)
+#dbDisconnect(mysqlconnection)
+
+data_one <- read.csv("/Users/constantinosclark/Downloads/dataFinal1.csv")
 
 
 ui <-
@@ -41,7 +33,7 @@ ui <-
            ")
     )),
     tags$style('.container-fluid {
-                             background-color: #007BA7;
+                             background-color: #e8e8e8;
               }'),
     
     tags$head(tags$style(
@@ -154,9 +146,10 @@ ui <-
           "Visualization",
           box(
             width = "1000px",
+            height = "900",
             status = "info",
             title = "Network Visualization",
-            cyjShinyOutput('cyjShiny'),
+            cyjShinyOutput('cyjShiny',width = "99%", height = "800"),
             
             
           ),
@@ -331,9 +324,9 @@ server <- function(input, output, session) {
     )
   })
   
-  Disease <- unique(data_one$DiseaseCat)
+  Disease <- unique(data_one$Disease)
   uniqType <- unique(data_one$networkType)
-  df2 <- as.data.frame(t(data_one$DiseaseCat))
+  df2 <- as.data.frame(t(data_one$Disease))
   df1 <- as.data.frame(t(data_one$networkType))
   uniqTypeSum <- replicate(length(uniqType), 0)
   DiseaseSum <- replicate(length(Disease), 0)
@@ -393,17 +386,16 @@ server <- function(input, output, session) {
         "Min Degree:", paste(unlist(min(degree(MyGraph)))),"\n",
         #"Max K-Core:",  paste(unlist(max(coreness(MyGraph)))),"\n",
         "Average degree:",paste(unlist(mean(degree(MyGraph)))),"\n",
-        "Density:",paste(unlist(edge_density(MyGraph, loops=F))),"\n",
-        "Number of triangles:",paste(unlist(transitivity(MyGraph, type="global"))),"\n",
+        #"Edge Density:",paste(unlist(edge_density(MyGraph, loops=F))),"\n",
         "Max Betweenness:",paste(unlist(max((betweenness(MyGraph))))),"\n",
         "Max Edge Betweenness:",paste(unlist(max(edge_betweenness(MyGraph)))),"\n",
-        "Strength:",paste(unlist(max(strength(MyGraph)))),"\n",
+        "Max Strength:",paste(unlist(max(strength(MyGraph)))),"\n",
         "Clustering Coefficient:",paste(unlist((transitivity(MyGraph)))),"\n",
     )
   })
   
   output$graphDeg <- renderPlot(
-    plot((betweenness(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml"))),main="Betweeness",xlab="X axis of degree distribution",ylab="Y axis of degree distribution",
+    plot((betweenness(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml"))),main="Betweeness",xlab="",ylab="",
          font.main=4, type="l", font.xlab=4, font.ylab=4.7, bg = "red",   # Fill color
          col = "blue", # Border color
          cex = 1,      # Symbol size
@@ -415,13 +407,13 @@ server <- function(input, output, session) {
   
   output$graphDegHIST <- renderPlot(
     
-    hist(degree(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")), main="Histogram of node degree",xlab="x axis of node degree"))
+    hist(degree(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")), main="Degree Distribution",xlab=""))
   
   
 
   
   output$coreness<-renderPlot(
-    plot(strength(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")),type="l",main="Strength",xlab="X axis of Strength",ylab="Y axis of Strength",
+    plot(strength(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")),type="l",main="Strength",xlab="",ylab="",
          font.main=4, font.lab=4, font.sub=4, bg = "red",   # Fill color
          col = "blue", # Border color
          cex = 1,      # Symbol size
@@ -429,7 +421,7 @@ server <- function(input, output, session) {
   )
   
   output$closeness<-renderPlot(
-    plot(closeness(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")),main="closeness",xlab="X axis of closeness",ylab="Y axis of closeness", 
+    plot(closeness(read_graph(data_one$NetworkGraphMl[input$dt_dblclick$row + 1], "graphml")),main="Closeness",xlab="",ylab="", 
          bg = "red",
          type="l",
          col = "blue", # Border color
@@ -454,7 +446,7 @@ server <- function(input, output, session) {
       Edges = data_one$Edges,
       Database = data_one$DatabaseName,
       NetworkType = data_one$networkType,
-      
+      Description = data_one$networkDescription,
       Download = shinyInput(downloadButton, 
                             nrow(data_one),
                             'button_',
@@ -523,7 +515,7 @@ server <- function(input, output, session) {
       options = (
         list(
           columnDefs = list(list(
-            targets = c(0, 6), searchable = FALSE
+            targets = c(0, 7), searchable = FALSE
           )),
           #buttons = c('copy', 'csv', 'excel'),
           #dom = 'Bfrtip',
